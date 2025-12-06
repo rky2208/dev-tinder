@@ -1,6 +1,8 @@
 const express = require("express");
 const { connectDB } = require("./config/database");
 const UserModel = require("./models/user");
+const validateSignUpData = require("./utils/validation")
+
 
 const appClient = new express();
 appClient.use(express.json());
@@ -17,6 +19,9 @@ const ALLOWED_UPDATE_FIELDS = [
 
 appClient.post("/signUp", async (req, res) => {
   try {
+    //1. Data Validation
+    validateSignUpData(req)
+
     const user = new UserModel(req.body);
 
     await user.save();

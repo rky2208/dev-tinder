@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
-
+const validator =  require("validator")
 const userSchema = mongoose.Schema({
   firstName: {
     type: String,
-    minLength:2,
-    maxLength:30,
+    minLength:[2,"min character require for firstName is 2"],
+    maxLength:[20,"max character allowed for firstName is 20"],
     required:true
   },
   lastName: {
@@ -16,12 +16,17 @@ const userSchema = mongoose.Schema({
     required:true,
     unique:true,
     trim:true,
-    lowercase:true
+    lowercase:true,
+    validate(val){
+      if(!validator.isEmail(val)){
+          throw new Error("Invalid Email")
+      }
+    }
   },
   password:{
     type:String,
     required:true,
-    minLength:6
+    minLength:6,
   },
   age:{
     type:Number,
@@ -48,7 +53,14 @@ const userSchema = mongoose.Schema({
   },
   photoUrl:{
     type:String,
-    default:"https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.vecteezy.com%2Ffree-vector%2Fdefault-user&psig=AOvVaw1HiegERFQvmZpn6GBZLJAZ&ust=1765123038428000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCKinifCpqZEDFQAAAAAdAAAAABAE"
+    default:"https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.vecteezy.com%2Ffree-vector%2Fdefault-user&psig=AOvVaw1HiegERFQvmZpn6GBZLJAZ&ust=1765123038428000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCKinifCpqZEDFQAAAAAdAAAAABAE",
+    validate(val){
+      if(!validator.isURL(val))
+      {
+        throw Error("Invalid photo url")
+      }
+
+    }
   }
 },{timestamps:true});
 
