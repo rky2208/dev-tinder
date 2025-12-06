@@ -12,4 +12,4 @@ function validateSignUpData(req) {
   }
 }
 
-module.exports = signUpDataValidation;
+module.exports = validateSignUpData;

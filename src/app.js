@@ -1,8 +1,8 @@
 const express = require("express");
 const { connectDB } = require("./config/database");
 const UserModel = require("./models/user");
-const validateSignUpData = require("./utils/validation")
-
+const validateSignUpData = require("./utils/validation");
+const bcrypt = require("bcrypt");
 
 const appClient = new express();
 appClient.use(express.json());
@@ -20,14 +20,55 @@ const ALLOWED_UPDATE_FIELDS = [
 appClient.post("/signUp", async (req, res) => {
   try {
     //1. Data Validation
-    validateSignUpData(req)
+    validateSignUpData(req);
 
-    const user = new UserModel(req.body);
-
+    //2. Encrypt Password
+    const {
+      emailAddress,
+      firstName,
+      lastName,
+      age,
+      gender,
+      skills,
+      about,
+      photoUrl,
+      password
+    } = req.body || {};
+    pswrdHash = await bcrypt.hash(password, 10);
+    const user = new UserModel({
+      firstName,
+      lastName,
+      age,
+      about,
+      gender,
+      skills,
+      photoUrl,
+      emailAddress,
+      password: pswrdHash,
+    });
     await user.save();
     res.send("Created..");
   } catch (err) {
     res.status(404).send(`Error while singup bad request:${err}`);
+  }
+});
+
+appClient.get("/login", async (req, res) => {
+  try {
+    const { emailAddress, password } = req.body || {};
+    //validate emailAddress exist or not
+    const user = await UserModel.findOne({ emailAddress: emailAddress });
+    if (!user) {
+      throw Error("Invalid Credentialssssss");
+    }
+    // validated password
+    const isValidPswrd = await bcrypt.compare(password, user.password);
+    if (!isValidPswrd) {
+      throw Error("Invalid Credentials...");
+    }
+    res.send("Successfully logged IN");
+  } catch (err) {
+    res.status(400).send("Bad Request:" + err);
   }
 });
 
@@ -39,11 +80,8 @@ appClient.get("/user", async (req, res) => {
     if (user.length === 0) {
       res.status(404).send("User Not found");
     }
-    console.log("K---", user);
     res.send(user);
   } catch (err) {
-    console.log("K---", err);
-
     res.status(400).send("Error while findind bad request", err);
   }
 });
