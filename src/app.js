@@ -5,6 +5,16 @@ const UserModel = require("./models/user");
 const appClient = new express();
 appClient.use(express.json());
 
+const ALLOWED_UPDATE_FIELDS = [
+  "firstName",
+  "lastName",
+  "age",
+  "gender",
+  "skills",
+  "about",
+  "photoUrl",
+];
+
 appClient.post("/signUp", async (req, res) => {
   try {
     const user = new UserModel(req.body);
@@ -45,10 +55,17 @@ appClient.delete("/user", async (req, res) => {
   }
 });
 
-appClient.patch("/user", async (req, res) => {
+appClient.patch("/user/:userId", async (req, res) => {
+  const userId = req.params?.userId;
+
   try {
-    const userId = req.body.uId;
     const data = req.body;
+    const hasAnyNotAllowedData = Object.keys?.(data)?.every(
+      (field) => !ALLOWED_UPDATE_FIELDS.includes(field)
+    );
+    if (hasAnyNotAllowedData) {
+      throw "There is some data which is not allowed to udpate";
+    }
     //const fName = req.body.firstName;
     //await UserModel.findByIdAndUpdate(userId, { firstName: fName });
     //await UserModel.findOneAndUpdate({_id:userId, firstName: fName })
@@ -58,7 +75,7 @@ appClient.patch("/user", async (req, res) => {
     });
     res.send("Updated...");
   } catch (err) {
-    res.status(400).send("Error while updating bad request"+ err);
+    res.status(400).send("Error while updating bad request" + err);
   }
 });
 
