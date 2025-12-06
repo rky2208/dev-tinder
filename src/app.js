@@ -4,13 +4,15 @@ const UserModel = require("./models/user");
 
 const appClient = new express();
 appClient.use(express.json());
+
 appClient.post("/signUp", async (req, res) => {
-  const user = new UserModel(req.body);
   try {
+    const user = new UserModel(req.body);
+
     await user.save();
     res.send("Created..");
   } catch (err) {
-    res.status(404).send("Error while singup bad request", err);
+    res.status(404).send(`Error while singup bad request:${err}`);
   }
 });
 
@@ -46,14 +48,17 @@ appClient.delete("/user", async (req, res) => {
 appClient.patch("/user", async (req, res) => {
   try {
     const userId = req.body.uId;
-    const data =  req.body
+    const data = req.body;
     //const fName = req.body.firstName;
     //await UserModel.findByIdAndUpdate(userId, { firstName: fName });
     //await UserModel.findOneAndUpdate({_id:userId, firstName: fName })
-    await UserModel.findByIdAndUpdate(userId,data)
+    await UserModel.findByIdAndUpdate(userId, data, {
+      returnDocument: "before",
+      runValidators: true,
+    });
     res.send("Updated...");
   } catch (err) {
-    res.status(400).send("Error while updating bad request", err);
+    res.status(400).send("Error while updating bad request"+ err);
   }
 });
 
