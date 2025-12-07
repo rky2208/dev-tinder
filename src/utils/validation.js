@@ -22,13 +22,21 @@ function validateEditProfileData(req) {
     "about",
     "photoUrl",
   ];
-  const isEditAllowed = Object.keys?.(req.body)?.every(
-    (field) => ALLOWED_EDIT_FIELDS.includes(field)
+  const isEditAllowed = Object.keys?.(req.body)?.every((field) =>
+    ALLOWED_EDIT_FIELDS.includes(field)
   );
   return isEditAllowed;
 }
 
+function validatePasswordResetData(password) {
+  if (!password) {
+    throw Error("Password shoult not be empty, null or undefined");
+  } else if (!isStrongPassword(password?.toString())) {
+    throw Error("Password is weak enter strong password");
+  }
+}
 module.exports = {
   validateSignUpData,
   validateEditProfileData,
+  validatePasswordResetData,
 };

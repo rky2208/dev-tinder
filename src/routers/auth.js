@@ -54,13 +54,13 @@ authRouter.post("/login", async (req, res) => {
       throw Error("Invalid Credentialssssss");
     }
     // validated password
-    const isValidPswrd = user.validatePassword(password);
-    if (!isValidPswrd) {
+    const isPswrdMatched = await user.validatePassword(password);
+    if (!isPswrdMatched) {
       throw Error("Invalid Credentials...");
     }
 
     // create unique token
-    const token = user.createToken();
+    const token = await user.createToken();
     // Set Cookies: token
     res.cookie("token", token, {
       expires: new Date(Date.now() + 900000),

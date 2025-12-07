@@ -70,9 +70,9 @@ const userSchema = mongoose.Schema(
 userSchema.methods.validatePassword = async function (password) {
   const user = this;
   const passwordHash = user.password;
-  const isValidPswrd = await bcrypt.compare(password, passwordHash);
 
-  return isValidPswrd;
+  const isSamePassword = await bcrypt.compare(password, passwordHash);
+  return isSamePassword;
 };
 
 userSchema.methods.createToken = function () {
