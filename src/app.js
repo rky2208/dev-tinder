@@ -4,7 +4,6 @@ const UserModel = require("./models/user");
 const validateSignUpData = require("./utils/validation");
 const bcrypt = require("bcrypt");
 const cookieParser = require("cookie-parser");
-const jwt = require("jsonwebtoken");
 const authenticateUser = require("./middlewares/auth");
 
 const appClient = new express();
@@ -66,15 +65,13 @@ appClient.get("/login", async (req, res) => {
       throw Error("Invalid Credentialssssss");
     }
     // validated password
-    const isValidPswrd = await bcrypt.compare(password, user.password);
+    const isValidPswrd = user.validatePassword(password);
     if (!isValidPswrd) {
       throw Error("Invalid Credentials...");
     }
 
     // create unique token
-    const token = jwt.sign({ _id: user._id }, "JWT@123", {
-      expiresIn: "1d",
-    });
+    const token = user.createToken();
     // Set Cookies: token
     res.cookie("token", token, {
       expires: new Date(Date.now() + 900000),
