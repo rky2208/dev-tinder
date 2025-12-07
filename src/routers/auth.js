@@ -1,7 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const UserModel = require("../models/user");
-const validateSignUpData = require("../utils/validation");
+const { validateSignUpData } = require("../utils/validation");
 
 const authRouter = express.Router();
 
@@ -35,9 +35,13 @@ authRouter.post("/signUp", async (req, res) => {
       password: pswrdHash,
     });
     await user.save();
-    res.send("Created..");
+    res.send({
+      message: "Account Created Successfully",
+    });
   } catch (err) {
-    res.status(404).send(`Error while singup bad request:${err}`);
+    res.status(400).json({
+      message: `Singup Error:: ${err}`,
+    });
   }
 });
 
@@ -61,9 +65,13 @@ authRouter.post("/login", async (req, res) => {
     res.cookie("token", token, {
       expires: new Date(Date.now() + 900000),
     });
-    res.send("Successfully logged IN");
+    res.json({
+      message: "Successfully logged IN",
+    });
   } catch (err) {
-    res.status(400).send("Bad Request:" + err);
+    res.status(400).json({
+      message: `LogedIn Error:: ${err}`,
+    });
   }
 });
 
@@ -72,8 +80,8 @@ authRouter.post("/logout", (_req, res) => {
     expires: new Date(Date.now()),
   });
   res.json({
-    message:"Logged out successfully!"
-  })
+    message: "Logged out successfully!",
+  });
 });
 
 module.exports = authRouter;
