@@ -3,9 +3,13 @@ const { connectDB } = require("./config/database");
 const UserModel = require("./models/user");
 const validateSignUpData = require("./utils/validation");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const authenticateUser = require("./middlewares/auth");
 
 const appClient = new express();
 appClient.use(express.json());
+appClient.use(cookieParser());
 
 const ALLOWED_UPDATE_FIELDS = [
   "firstName",
@@ -32,7 +36,7 @@ appClient.post("/signUp", async (req, res) => {
       skills,
       about,
       photoUrl,
-      password
+      password,
     } = req.body || {};
     pswrdHash = await bcrypt.hash(password, 10);
     const user = new UserModel({
@@ -66,27 +70,32 @@ appClient.get("/login", async (req, res) => {
     if (!isValidPswrd) {
       throw Error("Invalid Credentials...");
     }
+
+    // create unique token
+    const token = jwt.sign({ _id: user._id }, "JWT@123", {
+      expiresIn: "1d",
+    });
+    // Set Cookies: token
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 900000),
+    });
     res.send("Successfully logged IN");
   } catch (err) {
     res.status(400).send("Bad Request:" + err);
   }
 });
 
-appClient.get("/user", async (req, res) => {
+appClient.get("/user", authenticateUser, async (req, res) => {
   try {
-    // const users =  await UserModel.find({lastName:req.body.lastName}) // incase of more than one find all matching
-
-    const user = await UserModel.findOne({ lastName: req.body.lastName }); // first occurence
-    if (user.length === 0) {
-      res.status(404).send("User Not found");
-    }
+    // Read from the request that set during authentication, no need of db call again
+    const user = req.user;
     res.send(user);
   } catch (err) {
-    res.status(400).send("Error while findind bad request", err);
+    res.status(400).send("Error while findind bad request" + err);
   }
 });
 
-appClient.delete("/user", async (req, res) => {
+appClient.delete("/user", authenticateUser, async (req, res) => {
   try {
     const userId = req.body.userId;
     // const users =  await UserModel.find({_id:userId}) // incase of more than one find all matching
@@ -98,7 +107,7 @@ appClient.delete("/user", async (req, res) => {
   }
 });
 
-appClient.patch("/user/:userId", async (req, res) => {
+appClient.patch("/user/:userId", authenticateUser, async (req, res) => {
   const userId = req.params?.userId;
 
   try {
@@ -109,9 +118,6 @@ appClient.patch("/user/:userId", async (req, res) => {
     if (hasAnyNotAllowedData) {
       throw "There is some data which is not allowed to udpate";
     }
-    //const fName = req.body.firstName;
-    //await UserModel.findByIdAndUpdate(userId, { firstName: fName });
-    //await UserModel.findOneAndUpdate({_id:userId, firstName: fName })
     await UserModel.findByIdAndUpdate(userId, data, {
       returnDocument: "before",
       runValidators: true,
@@ -122,7 +128,7 @@ appClient.patch("/user/:userId", async (req, res) => {
   }
 });
 
-appClient.get("/feed", async (req, res) => {
+appClient.get("/feed", authenticateUser, async (req, res) => {
   try {
     const user = await UserModel.find({});
     res.send(user);
