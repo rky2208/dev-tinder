@@ -20,7 +20,7 @@ const authenticateUser = async (req, res, next) => {
     req.user = user;
     next();
   } catch (err) {
-    res.status(400).send("Error: Issue while authentication ::" + err);
+    res.status(400).send("Error:-" + err);
   }
 };
 
