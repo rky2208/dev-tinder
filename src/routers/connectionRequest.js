@@ -50,12 +50,54 @@ connectionRouter.post(
       await ConnectionModel({
         fromUserId,
         toUserId,
-        status
+        status,
       }).save();
 
       res.send("Hi");
     } catch (error) {
       res.status(400).send("Error:" + error.message);
+    }
+  }
+);
+
+connectionRouter.post(
+  "/request/review/:status/:requestId",
+  authenticateUser,
+  async (req, res) => {
+    try {
+      const { status, requestId } = req.params;
+      const loggedInUser = req.user;
+
+      //1. check valid object id or not
+      if (!mongoose.Types.ObjectId.isValid(requestId)) {
+        throw Error("Invalid format of reqId");
+      }
+      // 2. check only status allowed to be accepted, rejected
+      const ALLOWED_CONNECTION_REVIEW_TYPE = ["accepted", "rejected"];
+      if (!ALLOWED_CONNECTION_REVIEW_TYPE.includes(status)) {
+        throw Error("invalid status type");
+      }
+
+      // 3. check is requestId, and also that request id should have only status as 'interested' and toUserId should be loggedIn userId
+      const connectionRequest = await ConnectionModel.findOne({
+        _id: requestId,
+        toUserId: loggedInUser._id,
+        status: "interested",
+      });
+      if (!connectionRequest) {
+        throw Error("No such connection request exist");
+      }
+
+      connectionRequest.status = status;
+      connectionRequest.save();
+
+      res.json({
+        message: `You have ${status} the connection request`,
+      });
+    } catch (error) {
+      res.status(400).json({
+        message: "Error:" + error.message,
+      });
     }
   }
 );
