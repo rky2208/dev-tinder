@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const authRouter = require("./routers/auth");
 const profileRouter = require("./routers/profile");
 const connectionRouter = require("./routers/connectionRequest");
+const userRouter =  require("./routers/user");
 
 const appClient = new express();
 appClient.use(express.json());
@@ -12,6 +13,7 @@ appClient.use(cookieParser());
 appClient.use(authRouter);
 appClient.use(profileRouter);
 appClient.use(connectionRouter);
+appClient.use(userRouter);
 
 const main = async () => {
   const res = await connectDB();

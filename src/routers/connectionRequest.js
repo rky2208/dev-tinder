@@ -53,7 +53,9 @@ connectionRouter.post(
         status,
       }).save();
 
-      res.send("Hi");
+      res.send({
+        message: `${status} successfully to ${toUser.firstName}!!`,
+      });
     } catch (error) {
       res.status(400).send("Error:" + error.message);
     }
